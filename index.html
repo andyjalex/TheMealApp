@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title >The meal App</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7"
+      crossorigin="anonymous"
+    />
+  </head>
+  <body>
+    <header class="col-md-12 p-4 d-flex flex-row">
+      <div class="container"><h2 class="fw-bold mt-3">The Meal App</h2></div>
+      <div class="container" id="latestOrders"><h2 class="fw-bold mt-3" id="order-status" ></h2></div>
+      
+    </header>
+    <main class="container ">
+    <div class="row">
+
+    
+      <div class="container d-flex flex-column justify-content-center align-items-center p-4">
+        <form action="" id="ingredient-form">
+          <label for="ingredient">Please enter main ingredient</label>
+          <input id="ingredient" />
+          <button class="btn-primary">Search</button>
+        </form>
+      </div>
+
+      <div id="results" class="container fluid"></div>
+      
+    </div>
+    <div class="container ">
+        <h5>Incomplete orders</h5>
+        <form action="" id="actionOrder">
+            <label for="orderNum">Please enter order number to complete</label>
+            <input id="orderNum" />
+            <button class="btn-primary">Confirm</button>
+        </form>
+    </div> 
+    <div id="incompleteOrders" class="container "></div>
+    
+    </main>
+    <footer></footer>
+
+    <script src="index.js"></script>
+  </body>
+</html>
