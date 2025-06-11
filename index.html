@@ -12,39 +12,41 @@
     />
   </head>
   <body>
-    <header class="col-md-12 p-4 d-flex flex-row">
+    <header class="col-md-12 p-4 d-flex flex-row align-items-center">
       <div class="container"><h2 class="fw-bold mt-3">The Meal App</h2></div>
       <div class="container" id="latestOrders">
         <h2 class="fw-bold mt-3" id="order-status"></h2>
       </div>
     </header>
-    <main class="container">
-      <div class="row">
+    <main class="container my-4 p-3 transparent rounded">
+      <div class="bg-secondary bg-opacity-10 py-5 px-3 mt-2 rounded shadow-sm">
         <div
           class="container d-flex flex-column justify-content-center align-items-center p-4"
         >
-          <form action="" id="ingredient-form" class="d-flex flex-row gap-3">
+          <form action="" id="ingredient-form" class="row row-cols-1 row-cols-md-auto gap-3 m-2">
+            
             <label for="ingredient">Please enter main ingredient</label>
             <input id="ingredient" />
-            <button class="btn-primary">Search</button>
+            <button class="btn btn-success">Search</button>
           </form>
           <span id="searchErrorMessage"></span>
         </div>
 
         <div id="results" class="container-fluid"></div>
       </div>
-      <div class="container">
+      <div class="bg-secondary bg-opacity-10 py-5 px-3 mt-5 rounded shadow-sm">
         <h5>Incomplete orders</h5>
-        <form action="" id="action-order-form" class="d-none flex-row gap-3">
+        <form action="" id="action-order-form" class="d-none row row-cols-1 row-cols-md-auto gap-3 m-2">
           <label for="orderNum">Enter order number to complete</label>
           <input id="orderNum" />
-          <button class="btn-primary">Confirm</button>
+          <button class="btn btn-success">Confirm</button>
         </form>
+        <div id="incompleteOrders" class="container"></div>
       </div>
-      <div id="incompleteOrders" class="container"></div>
+     
     </main>
-    <footer></footer>
+    <footer class="text-center text-muted py-3">© 2025 The Meal App</footer>
 
-    <script src="index.js"></script>
+    <script src="js/index.js"></script>
   </body>
 </html>

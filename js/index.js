@@ -19,12 +19,13 @@ ingredientForm.addEventListener("submit", (e) => {
 async function fetchAndRenderMeals() {
   let errorMsg = document.createElement("p");
   const rawIngredientInput = document.querySelector("#ingredient");
+  //fortmat the input
   const formattedRawIngredient = rawIngredientInput.value
     .trim()
     .toLowerCase()
     .replace(/\s+/g, "_");
   console.log(formattedRawIngredient);
-
+  //check if the ingredident wern't entered 
   if (!formattedRawIngredient) {
     errorMsg.innerHTML = `Please enter an ingredient.`;
     errorMsg.className = "text-danger text-center fs-5 my-3";
@@ -51,6 +52,7 @@ async function fetchAndRenderMeals() {
     let data = await response.json();
     meals = data.meals;
 
+    //check if meals are returned
     if (!meals) {
       errorMsg.innerHTML = `No meals found for ${formattedRawIngredient}. Please try another ingredient.`;
       errorMsg.className = "text-danger text-center fs-5 my-3";
@@ -62,7 +64,7 @@ async function fetchAndRenderMeals() {
 
       rawIngredientInput.value = "";
       rawIngredientInput.focus();
-      // Recursion: call this function again after alert
+      // Recursion isn't necessary
       return;
     }
 
@@ -110,7 +112,7 @@ async function fetchAndRenderMeals() {
     rawIngredientInput.value = "";
   }
 }
-
+//an action event listener for completing the orders
 actionOrderForm.addEventListener("submit", (e) => {
   e.preventDefault();
   let inputValue = parseInt(orderNum.value);
@@ -162,6 +164,7 @@ actionOrderForm.addEventListener("submit", (e) => {
   //overwrite the orders in session storage
   sessionStorage.setItem("orders", JSON.stringify(existingOrders));
 
+  //now render incomplete orders
   renderIncompleteOrders();
   orderNum.value = "";
 });
@@ -192,7 +195,6 @@ function placeOrder() {
     sessionStorage.setItem("orders", JSON.stringify(existingOrders));
   } else {
     //create new array
-
     const newOrderDetails = [
       {
         orderNumber: lastOrderNumber + 1,
@@ -208,42 +210,39 @@ function placeOrder() {
   sessionStorage.setItem("lastOrderNumber", lastOrderNumber + 1);
 
   //update chef message
-  //make this dissapear after 4 seconds
+  //make this dissapear after 2 seconds
   orderStatusMessage.textContent = "Order placed";
   //wait 2 seconds
-  const myTimeout = setTimeout(() => {
-    console.log(orderStatusMessage);
-
+  setTimeout(() => {
     orderStatusMessage.textContent = "";
   }, 2000);
 }
 
+//A function to render all of the incomplete orders in the lower part of the screen
 function renderIncompleteOrders() {
   incompleteOrdersContainer.innerHTML = "";
-  //get the incomplete orders
+  //get the  orders
   let existingOrders = JSON.parse(sessionStorage.getItem("orders"));
 
-  console.log(existingOrders);
-
+  //filter out completed ones
   if (existingOrders) {
     const incompleteOrders = existingOrders.filter((order) => {
       return order.orderStatus != "completed";
     });
 
     //show action order form
-
     actionOrderForm.classList.remove("d-none");
     actionOrderForm.classList.add("d-flex");
     console.log(incompleteOrders);
-    //render all to the bottom div
 
+    //render all to the bottom div
     let row = document.createElement("div");
     row.className = "row";
 
     incompleteOrders.forEach((order) => {
       let col = document.createElement("div");
       col.className =
-        "col-md-2 bg-light p-3 d-flex justify-content-center align-items-center";
+        "col-md-2 bg-transparent p-3 d-flex justify-content-center align-items-center";
 
       col.innerHTML = `<div class="card text-center" style="width: 10rem;">
         <div class="card-body">
