@@ -1,25 +1,41 @@
 //query selectors
 const ingredientForm = document.querySelector("#ingredient-form");
 const resultsContainer = document.querySelector("#results");
-const orderStatusMesaage = document.querySelector("#order-status");
+const orderStatusMessage = document.querySelector("#order-status");
 const incompleteOrdersContainer = document.querySelector("#incompleteOrders");
-const actionOrderForm = document.querySelector("#actionOrder");
+const actionOrderForm = document.querySelector("#action-order-form");
+const searchErrorMessageContainer = document.querySelector(
+  "#searchErrorMessage"
+);
+const orderNumInput = document.querySelector("#orderNum");
 
 let meals;
 
-ingredientForm.addEventListener("submit", async (e) => {
+ingredientForm.addEventListener("submit", (e) => {
   e.preventDefault();
+  fetchAndRenderMeals();
+});
 
-  const rawIngredient = document.querySelector("#ingredient").value.trim();
-  const formattedRawIngredient = rawIngredient
+async function fetchAndRenderMeals() {
+  let errorMsg = document.createElement("p");
+  const rawIngredientInput = document.querySelector("#ingredient");
+  const formattedRawIngredient = rawIngredientInput.value
+    .trim()
     .toLowerCase()
     .replace(/\s+/g, "_");
   console.log(formattedRawIngredient);
 
-  console.log(rawIngredient);
-
-  resultsContainer.innerHTML = "";
-
+  if (!formattedRawIngredient) {
+    errorMsg.innerHTML = `Please enter an ingredient.`;
+    errorMsg.className = "text-danger text-center fs-5 my-3";
+    searchErrorMessageContainer.appendChild(errorMsg);
+    myTimeout = setTimeout(() => {
+      errorMsg.remove();
+    }, 2000);
+    rawIngredientInput.focus();
+    return;
+  }
+  //using a promise
   //   let response = fetch(
   //     `https://www.themealdb.com/api/json/v1/1/filter.php?i=${rawIngredient}`
   //   )
@@ -27,61 +43,94 @@ ingredientForm.addEventListener("submit", async (e) => {
   //     .then((data) => {
   //       console.log(data);
   //     });
+  try {
+    let response = await fetch(
+      `https://www.themealdb.com/api/json/v1/1/filter.php?i=${formattedRawIngredient}`
+    );
 
-  let response = await fetch(
-    `https://www.themealdb.com/api/json/v1/1/filter.php?i=${formattedRawIngredient}`
-  );
-
-  let data = await response.json();
-  console.log(data);
-
-  if (data) {
-    //clear the resutsContainer
-    let resultsRow = document.createElement("div");
-    resultsRow.className = "row";
+    let data = await response.json();
     meals = data.meals;
 
-    const results = meals.forEach((element) => {
-      console.log(element);
+    if (!meals) {
+      errorMsg.innerHTML = `No meals found for ${formattedRawIngredient}. Please try another ingredient.`;
+      errorMsg.className = "text-danger text-center fs-5 my-3";
+      searchErrorMessageContainer.appendChild(errorMsg);
+      myTimeout = setTimeout(() => {
+        errorMsg.innerHTML = "";
+        searchErrorMessageContainer.appendChild(errorMsg);
+      }, 2000);
+
+      rawIngredientInput.value = "";
+      rawIngredientInput.focus();
+      // Recursion: call this function again after alert
+      return;
+    }
+
+    let resultsRow = document.createElement("div");
+    resultsRow.className =
+      "row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-6 g-4";
+    //show the results container
+    resultsContainer.innerHTML = "";
+    resultsContainer.classList.remove("d-none");
+    resultsContainer.classList.add("d-flex");
+
+    meals.forEach((element) => {
       let col = document.createElement("div");
-      col.className = "col-md-4 bg-light p-3 d-flex";
+      col.className = "col";
 
       col.innerHTML = `
-            <div class="card text-center" style="width: 18rem;">
-            <img class="card-img-top"src="${element.strMealThumb}" />
-            <div class="card-body">
-                <h5 class="card-title">${element.strMeal}</h5>
-            </div>
-            </div>
-        `;
+              <div class="card text-center" >
+              <img class="card-img-top"src="${element.strMealThumb}" />
+              <div class="card-body">
+                  <h5 class="card-title">${element.strMeal}</h5>
+              </div>
+              </div>
+          `;
       resultsRow.appendChild(col);
 
       //select a ramdom meal for the chef
     });
 
     resultsContainer.appendChild(resultsRow);
-    orderStatusMesaage.textContent = "Selecting Chef's favourite order...";
+    orderStatusMessage.textContent = "Selecting Chef's favourite order...";
 
     //wait 2 seconds
-    const myTimeout = setTimeout(() => {
-      console.log(orderStatusMesaage);
+    myTimeout = setTimeout(() => {
+      console.log(orderStatusMessage);
 
       placeOrder();
-    }, 2000);
+      renderIncompleteOrders();
 
-    renderIncompleteOrders();
+      resultsContainer.classList.remove("d-flex");
+      resultsContainer.classList.add("d-none");
+      rawIngredientInput.value = "";
+    }, 3000);
+  } catch (error) {
+    alert("Error fetching data. Please try again later.");
+    rawIngredientInput.value = "";
   }
-});
+}
 
 actionOrderForm.addEventListener("submit", (e) => {
   e.preventDefault();
   let inputValue = parseInt(orderNum.value);
+  console.log(inputValue);
+
+  // 0 means "do nothing"
+  if (inputValue === 0) {
+    alert("No order completed.");
+    orderNum.value = "";
+    orderNum.focus();
+    return;
+  }
 
   let existingOrders = JSON.parse(sessionStorage.getItem("orders"));
 
   //get the index of the user entered order number
   let orderIndex = existingOrders.findIndex(function (order) {
-    return order.orderNumber === inputValue;
+    return (
+      (order.orderNumber === inputValue) & (order.orderStatus != "completed")
+    );
   });
 
   //does the ordernumber exist
@@ -98,15 +147,26 @@ actionOrderForm.addEventListener("submit", (e) => {
     existingOrders.splice(orderIndex, 1, newRecord);
   }
 
+  if (orderIndex === -1) {
+    alert(`Order ${inputValue} not found.`);
+    orderNum.value = "";
+    orderNum.focus();
+    return;
+  }
+
+  orderStatusMessage.textContent = `Order ${inputValue} marked as completed`;
+  setTimeout(() => {
+    orderStatusMessage.textContent = "";
+  }, 2000);
+
   //overwrite the orders in session storage
   sessionStorage.setItem("orders", JSON.stringify(existingOrders));
 
   renderIncompleteOrders();
+  orderNum.value = "";
 });
 
 function placeOrder() {
-  console.log("Chef orders ");
-
   //get a randomnumber between 0 and lenght-1
   const randonlySelectedMeal = Math.floor(Math.random() * meals.length);
 
@@ -120,7 +180,7 @@ function placeOrder() {
   //add to existing order array
   let existingOrders = JSON.parse(sessionStorage.getItem("orders"));
   if (existingOrders) {
-    console.log("in existing");
+    console.log("in existing" + existingOrders);
     const newOrderDetails = {
       orderNumber: lastOrderNumber + 1,
       orderStatus: "incomplete",
@@ -149,12 +209,12 @@ function placeOrder() {
 
   //update chef message
   //make this dissapear after 4 seconds
-  orderStatusMesaage.textContent = "Order placed";
+  orderStatusMessage.textContent = "Order placed";
   //wait 2 seconds
   const myTimeout = setTimeout(() => {
-    console.log(orderStatusMesaage);
+    console.log(orderStatusMessage);
 
-    orderStatusMesaage.textContent = "";
+    orderStatusMessage.textContent = "";
   }, 2000);
 }
 
@@ -163,33 +223,41 @@ function renderIncompleteOrders() {
   //get the incomplete orders
   let existingOrders = JSON.parse(sessionStorage.getItem("orders"));
 
-  const incompleteOrders = existingOrders.filter((order) => {
-    return order.orderStatus != "completed";
-  });
-  console.log(incompleteOrders);
-  //render all to the bottom div
+  console.log(existingOrders);
 
-  let row = document.createElement("div");
-  row.className = "row";
+  if (existingOrders) {
+    const incompleteOrders = existingOrders.filter((order) => {
+      return order.orderStatus != "completed";
+    });
 
-  incompleteOrders.forEach((order) => {
-    let col = document.createElement("div");
-    col.className = "col-md-4 bg-light p-3 d-flex";
+    //show action order form
 
-    col.innerHTML = `<div class="card text-center" style="width: 10rem;">
-    <div class="card-body">
-        <h5 class="card-title">${order.orderNumber}</h5>
-        <p class="card-text">${order.description}</p>
+    actionOrderForm.classList.remove("d-none");
+    actionOrderForm.classList.add("d-flex");
+    console.log(incompleteOrders);
+    //render all to the bottom div
+
+    let row = document.createElement("div");
+    row.className = "row";
+
+    incompleteOrders.forEach((order) => {
+      let col = document.createElement("div");
+      col.className =
+        "col-md-2 bg-light p-3 d-flex justify-content-center align-items-center";
+
+      col.innerHTML = `<div class="card text-center" style="width: 10rem;">
+        <div class="card-body">
+            <h5 class="card-title">${order.orderNumber}</h5>
+            <p class="card-text">${order.description}</p>
+            </div>
         </div>
-    </div>
-    `;
+        `;
 
-    row.appendChild(col);
-  });
+      row.appendChild(col);
+    });
 
-  incompleteOrdersContainer.appendChild(row);
-
-  //render latest 3 to the latest order div
+    incompleteOrdersContainer.appendChild(row);
+  }
 }
 
 function init() {
